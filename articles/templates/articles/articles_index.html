@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}Artigos – ArticleHub{% endblock %}
+{% block nav_articles %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Meus Artigos</h1>
+    {# A rota de criação será adicionada na tela de cadastro (RF01) #}
+    <a href="#" class="btn-primary">+ Novo artigo</a>
+</div>
+
+<form method="get" class="search-bar">
+    <input type="search" name="q" value="{{ query }}"
+           placeholder="Buscar por título, autor, fichamento ou tag...">
+    <button type="submit" class="btn-secondary">Buscar</button>
+    {% if query %}
+        <a href="{% url 'articles-index' %}" class="search-clear">limpar</a>
+    {% endif %}
+</form>
+
+{% if query %}
+    <p class="search-info">
+        {{ articles|length }} resultado{{ articles|length|pluralize }} para “{{ query }}”
+    </p>
+{% endif %}
+
+<div class="article-list">
+    {% for article in articles %}
+        <div class="article-card">
+            <div class="article-main">
+                {# O link levará ao detalhe do artigo quando essa tela existir #}
+                <h2 class="article-title">{{ article.title }}</h2>
+                <p class="article-meta">{{ article.author }} · {{ article.year }}</p>
+                {% if article.tags.all %}
+                    <div class="article-tags">
+                        {% for tag in article.tags.all %}
+                            <span class="tag">#{{ tag.name }}</span>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            <div class="article-side">
+                {% if article.quality %}
+                    <span class="quality quality-{{ article.quality }}">
+                        {{ article.get_quality_display }}
+                    </span>
+                {% else %}
+                    <span class="quality quality-none">Sem avaliação</span>
+                {% endif %}
+                <a href="{{ article.link }}" target="_blank" rel="noopener" class="article-link">link ↗</a>
+            </div>
+        </div>
+    {% empty %}
+        <div class="empty-state">
+            {% if query %}
+                <p>Nenhum artigo encontrado para “{{ query }}”.</p>
+            {% else %}
+                <p>Você ainda não cadastrou nenhum artigo.</p>
+                <a href="#" class="btn-primary">Cadastrar o primeiro</a>
+            {% endif %}
+        </div>
+    {% endfor %}
+</div>
+{% endblock %}
