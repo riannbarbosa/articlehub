@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Página não encontrada – ArticleHub</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f2f5 0%, #e3e9f5 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+        }
+
+        .error-wrap {
+            text-align: center;
+            max-width: 640px;
+            width: 100%;
+        }
+
+        .error-code {
+            font-size: clamp(140px, 34vw, 280px);
+            font-weight: 800;
+            line-height: 0.9;
+            letter-spacing: -8px;
+            background: linear-gradient(135deg, #1a73e8 0%, #0b3d91 100%);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 8px 30px rgba(26, 115, 232, 0.18);
+        }
+
+        .error-wrap h1 {
+            font-size: clamp(26px, 5vw, 40px);
+            font-weight: 700;
+            color: #1a1a1a;
+            margin-top: 8px;
+            letter-spacing: -0.5px;
+        }
+
+        .error-wrap p {
+            color: #5f6c7b;
+            font-size: clamp(15px, 2.5vw, 19px);
+            margin-top: 16px;
+            line-height: 1.5;
+        }
+
+        .btn-home {
+            display: inline-block;
+            margin-top: 40px;
+            padding: 16px 38px;
+            background: #1a73e8;
+            color: #fff;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 600;
+            text-decoration: none;
+            box-shadow: 0 6px 20px rgba(26, 115, 232, 0.35);
+            transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+        }
+
+        .btn-home:hover {
+            background: #1558b0;
+            transform: translateY(-2px);
+            box-shadow: 0 10px 28px rgba(26, 115, 232, 0.45);
+        }
+
+        .btn-home:active { transform: translateY(0); }
+    </style>
+</head>
+<body>
+    <div class="error-wrap">
+        <div class="error-code">404</div>
+        <h1>Página não encontrada</h1>
+        <p>A página que você procura não existe ou foi movida.</p>
+        <a href="{% url 'articles-index' %}" class="btn-home">Voltar para os artigos</a>
+    </div>
+</body>
+</html>
