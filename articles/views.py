@@ -7,9 +7,9 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.template.defaultfilters import pluralize
 from django.views.decorators.http import require_POST
 
-from . import crossref
+from . import crossref, tagfilters
 from .forms import ArticleForm
-from .models import Articles
+from .models import Articles, Tag
 
 ARTICLES_PER_PAGE = 10
 
@@ -35,6 +35,7 @@ def index(request):
         messages.error(request, 'Corrija os campos destacados e tente novamente.')
 
     query = request.GET.get('q', '').strip()
+    selected_tags = tagfilters.get_selected_tags(request)
     articles = Articles.objects.filter(user=request.user)
 
     if query:
@@ -43,7 +44,12 @@ def index(request):
             | Q(author__icontains=query)
             | Q(annotation__content__icontains=query)
             | Q(tags__name__icontains=query)
-        ).distinct()
+        )
+    articles = tagfilters.filter_by_tags(articles, selected_tags).distinct()
+
+    # Tags disponíveis para o filtro (apenas as usadas pelos artigos do usuário).
+    available_tags = Tag.objects.filter(articles__user=request.user).distinct().order_by('name')
+    tag_chips, base_qs = tagfilters.build_tag_chips(available_tags, selected_tags, query)
 
     total = articles.count()
     paginator = Paginator(articles, ARTICLES_PER_PAGE)
@@ -54,6 +60,9 @@ def index(request):
         'page_obj': page_obj,
         'total': total,
         'query': query,
+        'selected_tags': selected_tags,
+        'tag_chips': tag_chips,
+        'base_qs': base_qs,
         'form': form,
         'show_modal': show_modal,
     }

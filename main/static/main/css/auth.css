@@ -13,6 +13,11 @@ body {
     justify-content: center;
 }
 
+/* Controles de formulário não herdam a fonte por padrão no navegador. */
+button, input, select, textarea {
+    font-family: inherit;
+}
+
 .auth-container {
     width: 100%;
     max-width: 420px;
