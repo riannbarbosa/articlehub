@@ -8,6 +8,7 @@ class Articles(models.Model):
     author = models.CharField('Autor do artigo', max_length=255)
     year = models.PositiveSmallIntegerField('Ano de publicação')
     link = models.URLField('Link do artigo')
+    doi = models.CharField('DOI', max_length=255, blank=True)
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='articles')
     tags = models.ManyToManyField('Tag', related_name='articles', blank=True)
     

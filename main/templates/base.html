@@ -5,6 +5,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}ArticleHub{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{% static 'main/css/app.css' %}">
 </head>
 <body>
@@ -13,8 +16,7 @@
             <a href="{% url 'articles-index' %}" class="navbar-brand">ArticleHub</a>
             <div class="navbar-links">
                 <a href="{% url 'articles-index' %}" class="{% block nav_articles %}{% endblock %}">Artigos</a>
-                {# A rota de ideias será criada na tela do Banco de Ideias (RF03) #}
-                <a href="#" class="nav-disabled">Ideias</a>
+                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Ideias</a>
             </div>
             <div class="navbar-user">
                 <span>{{ request.user.username }}</span>
