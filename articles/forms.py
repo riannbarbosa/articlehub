@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Articles, Tag
+from .models import Annotation, Articles, Tag
 
 
 class ArticleForm(forms.ModelForm):
@@ -46,3 +46,22 @@ class ArticleForm(forms.ModelForm):
         for name in self.cleaned_data['tags']:
             tag, _ = Tag.objects.get_or_create(name=name)
             article.tags.add(tag)
+
+
+class AnnotationForm(forms.ModelForm):
+    """Editor de fichamento/resumo de um artigo (RF02).
+
+    Expõe apenas o conteúdo; o vínculo obrigatório com o artigo (RN01) e o
+    dono são definidos na view.
+    """
+
+    class Meta:
+        model = Annotation
+        fields = ['content']
+        widgets = {
+            'content': forms.Textarea(attrs={
+                'placeholder': 'Escreva o fichamento: resumo, citações relevantes e comentários críticos...',
+                'rows': 16,
+            }),
+        }
+        labels = {'content': 'Fichamento'}

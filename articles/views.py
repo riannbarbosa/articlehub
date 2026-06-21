@@ -8,8 +8,8 @@ from django.template.defaultfilters import pluralize
 from django.views.decorators.http import require_POST
 
 from . import crossref, tagfilters
-from .forms import ArticleForm
-from .models import Articles, Tag
+from .forms import AnnotationForm, ArticleForm
+from .models import Annotation, Articles, Tag
 
 ARTICLES_PER_PAGE = 10
 
@@ -36,7 +36,9 @@ def index(request):
 
     query = request.GET.get('q', '').strip()
     selected_tags = tagfilters.get_selected_tags(request)
-    articles = Articles.objects.filter(user=request.user)
+    # select_related('annotation') evita N+1 ao sinalizar quais artigos já
+    # possuem fichamento na listagem (RF02).
+    articles = Articles.objects.filter(user=request.user).select_related('annotation')
 
     if query:
         articles = articles.filter(
@@ -89,6 +91,43 @@ def edit(request, pk):
         })
 
     return render(request, 'articles/article_edit.html', {'form': form, 'article': article})
+
+
+@login_required
+def annotation(request, pk):
+    """Editor de fichamento/resumo de um artigo (RF02).
+
+    Cada artigo tem no máximo um fichamento (OneToOne), criado ou atualizado
+    aqui. O vínculo obrigatório com o artigo (RN01) é garantido pela própria
+    relação. Enviar o formulário com `delete` remove o fichamento existente.
+    """
+    article = get_object_or_404(Articles, pk=pk, user=request.user)
+    instance = Annotation.objects.filter(article=article).first()
+
+    if request.method == 'POST':
+        if 'delete' in request.POST:
+            if instance:
+                instance.delete()
+                messages.success(request, 'Fichamento removido com sucesso!')
+            return redirect('articles-index')
+
+        form = AnnotationForm(request.POST, instance=instance)
+        if form.is_valid():
+            fichamento = form.save(commit=False)
+            fichamento.article = article
+            fichamento.user = request.user
+            fichamento.save()
+            messages.success(request, 'Fichamento salvo com sucesso!')
+            return redirect('articles-index')
+        messages.error(request, 'Corrija os campos destacados e tente novamente.')
+    else:
+        form = AnnotationForm(instance=instance)
+
+    return render(request, 'articles/annotation_edit.html', {
+        'form': form,
+        'article': article,
+        'has_annotation': instance is not None,
+    })
 
 
 @login_required

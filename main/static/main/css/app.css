@@ -234,6 +234,21 @@ button, input, select, textarea {
     font-size: 14px;
 }
 
+.annotation-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 8px;
+    font-size: 12px;
+    font-weight: 500;
+    color: #137333;
+    background: #e6f4ea;
+    padding: 2px 8px;
+    border-radius: 12px;
+    text-decoration: none;
+}
+.annotation-badge:hover { background: #d3ecd9; }
+
 .article-tags {
     margin-top: 8px;
     display: flex;
