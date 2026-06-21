@@ -11,6 +11,11 @@ body {
     min-height: 100vh;
 }
 
+/* Controles de formulário não herdam a fonte por padrão no navegador. */
+button, input, select, textarea {
+    font-family: inherit;
+}
+
 /* ===== Navbar ===== */
 .navbar {
     background: #ffffff;
@@ -155,6 +160,45 @@ body {
     color: #5f6c7b;
     font-size: 14px;
     margin-bottom: 14px;
+}
+
+/* ===== Filtro por tags ===== */
+.tag-filters {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 18px;
+}
+
+.tag-filters .tag-filters-label {
+    color: #5f6c7b;
+    font-size: 13px;
+    font-weight: 500;
+}
+
+.tag-filter {
+    background: #eef1f5;
+    color: #475467;
+    font-size: 13px;
+    padding: 4px 12px;
+    border-radius: 14px;
+    text-decoration: none;
+    border: 1px solid transparent;
+    transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.tag-filter:hover {
+    background: #e2e7ee;
+}
+
+.tag-filter.is-active {
+    background: #1a73e8;
+    color: #fff;
+}
+
+.tag-filter.is-active::before {
+    content: '✓ ';
 }
 
 /* ===== Lista de artigos ===== */
