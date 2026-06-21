@@ -1,0 +1,427 @@
+{% extends 'base.html' %}
+
+{% block title %}Artigos – ArticleHub{% endblock %}
+{% block nav_articles %}active{% endblock %}
+
+{% block content %}
+<style>
+    /* ===== Modal de cadastro de artigo (RF01) ===== */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+        z-index: 1000;
+        padding: 24px;
+        overflow-y: auto;
+    }
+    .modal-overlay.is-open { display: flex; align-items: flex-start; justify-content: center; }
+
+    .modal {
+        background: #fff;
+        border-radius: 12px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
+        width: 100%;
+        max-width: 520px;
+        margin: auto;
+        animation: modal-in 0.18s ease-out;
+    }
+    @keyframes modal-in {
+        from { opacity: 0; transform: translateY(-12px); }
+        to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 20px 24px;
+        border-bottom: 1px solid #eef0f4;
+    }
+    .modal-header h2 { font-size: 19px; font-weight: 600; color: #1a1a1a; }
+    .modal-close {
+        background: none; border: none; cursor: pointer;
+        font-size: 26px; line-height: 1; color: #98a2b3;
+    }
+    .modal-close:hover { color: #475467; }
+
+    .modal-body { padding: 22px 24px; }
+
+    .modal-field { margin-bottom: 16px; }
+    .modal-field label {
+        display: block; font-size: 13px; font-weight: 500;
+        color: #444; margin-bottom: 6px;
+    }
+    .modal-field input,
+    .modal-field select {
+        width: 100%;
+        padding: 10px 14px;
+        border: 1.5px solid #dde1e7;
+        border-radius: 8px;
+        font-size: 14px;
+        color: #1a1a1a;
+        background: #fafafa;
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .modal-field input:focus,
+    .modal-field select:focus {
+        border-color: #1a73e8;
+        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
+        background: #fff;
+    }
+    .modal-row { display: flex; gap: 14px; }
+    .modal-row .modal-field { flex: 1; }
+    .field-errors { color: #d93025; font-size: 12px; margin-top: 5px; }
+    .field-errors ul { list-style: none; margin: 0; padding: 0; }
+
+    /* ===== Busca por DOI (Crossref) ===== */
+    .doi-lookup { display: flex; gap: 10px; }
+    .doi-lookup input { flex: 1; }
+    .doi-lookup .btn-secondary {
+        white-space: nowrap; padding: 10px 16px; border-radius: 8px;
+        font-size: 14px; font-weight: 600; cursor: pointer;
+        background: #eef3fd; color: #1a73e8; border: 1.5px solid #cfe0fb;
+    }
+    .doi-lookup .btn-secondary:hover { background: #e2ecfd; }
+    .doi-lookup .btn-secondary:disabled { opacity: 0.6; cursor: default; }
+    .doi-hint { font-size: 12px; color: #98a2b3; margin-top: 6px; }
+    .doi-hint.is-error { color: #d93025; }
+    .doi-hint.is-ok { color: #137333; }
+
+    .modal-footer {
+        display: flex; justify-content: flex-end; gap: 10px;
+        padding: 18px 24px; border-top: 1px solid #eef0f4;
+    }
+    .btn-cancel {
+        padding: 10px 18px; border-radius: 8px; cursor: pointer;
+        font-size: 14px; font-weight: 600;
+        background: #fff; color: #475467; border: 1.5px solid #dde1e7;
+    }
+    .btn-cancel:hover { background: #f7f8fa; }
+    .modal-footer .btn-primary { width: auto; }
+</style>
+
+<div class="page-header">
+    <h1>Meus Artigos</h1>
+    <button type="button" class="btn-primary" data-open-modal>+ Novo artigo</button>
+</div>
+
+<form method="get" class="search-bar">
+    <input type="search" name="q" value="{{ query }}"
+           placeholder="Buscar por título, autor, fichamento ou tag...">
+    <button type="submit" class="btn-secondary">Buscar</button>
+    {% if query %}
+        <a href="{% url 'articles-index' %}" class="search-clear">limpar</a>
+    {% endif %}
+</form>
+
+{% if query %}
+    <p class="search-info">
+        {{ total }} resultado{{ total|pluralize }} para “{{ query }}”
+    </p>
+{% endif %}
+
+<form method="post" action="{% url 'articles-bulk-delete' %}" id="article-form"
+      data-confirm="Excluir os artigos selecionados? Esta ação não pode ser desfeita.">
+    {% csrf_token %}
+
+    {% if articles %}
+        <div class="list-toolbar">
+            <label class="select-all">
+                <input type="checkbox" id="select-all">
+                <span>Selecionar todos</span>
+            </label>
+            <div class="bulk-actions" id="bulk-actions" hidden>
+                <span class="bulk-count"><span id="bulk-count">0</span> selecionado(s)</span>
+                <button type="submit" class="btn-danger"
+                        onclick="return confirm('Excluir os artigos selecionados? Esta ação não pode ser desfeita.');">
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    Excluir selecionados
+                </button>
+            </div>
+        </div>
+    {% endif %}
+
+    <div class="article-list">
+        {% for article in articles %}
+            <div class="article-card">
+                <label class="article-select">
+                    <input type="checkbox" name="selected" value="{{ article.pk }}" class="row-check">
+                </label>
+                <div class="article-main">
+                    {# O link levará ao detalhe do artigo quando essa tela existir #}
+                    <h2 class="article-title">{{ article.title }}</h2>
+                    <p class="article-meta">{{ article.author }} · {{ article.year }}</p>
+                    {% if article.tags.all %}
+                        <div class="article-tags">
+                            {% for tag in article.tags.all %}
+                                <span class="tag">#{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+                <div class="article-side">
+                    {% if article.quality %}
+                        <span class="quality quality-{{ article.quality }}">
+                            {{ article.get_quality_display }}
+                        </span>
+                    {% else %}
+                        <span class="quality quality-none">Sem avaliação</span>
+                    {% endif %}
+                    <a href="{{ article.link }}" target="_blank" rel="noopener" class="article-link">link ↗</a>
+                </div>
+                <div class="article-menu" data-menu>
+                    <button type="button" class="menu-trigger" data-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Ações do artigo">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
+                    </button>
+                    <div class="menu-dropdown" role="menu">
+                        <a href="{% url 'articles-edit' article.pk %}" class="menu-item" role="menuitem">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                            Editar
+                        </a>
+                        <button type="submit" formaction="{% url 'articles-delete' article.pk %}"
+                                class="menu-item menu-item-danger" role="menuitem"
+                                onclick="return confirm('Excluir “{{ article.title|escapejs }}”? Esta ação não pode ser desfeita.');">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            Excluir
+                        </button>
+                    </div>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state">
+                {% if query %}
+                    <p>Nenhum artigo encontrado para “{{ query }}”.</p>
+                {% else %}
+                    <p>Você ainda não cadastrou nenhum artigo.</p>
+                    <button type="button" class="btn-primary" data-open-modal>Cadastrar o primeiro</button>
+                {% endif %}
+            </div>
+        {% endfor %}
+    </div>
+</form>
+
+{% if page_obj.paginator.num_pages > 1 %}
+    <nav class="pagination" aria-label="Paginação">
+        {% if page_obj.has_previous %}
+            <a class="page-link" href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.previous_page_number }}">‹ Anterior</a>
+        {% else %}
+            <span class="page-link is-disabled">‹ Anterior</span>
+        {% endif %}
+
+        <span class="page-status">Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}</span>
+
+        {% if page_obj.has_next %}
+            <a class="page-link" href="?{% if query %}q={{ query|urlencode }}&amp;{% endif %}page={{ page_obj.next_page_number }}">Próxima ›</a>
+        {% else %}
+            <span class="page-link is-disabled">Próxima ›</span>
+        {% endif %}
+    </nav>
+{% endif %}
+
+{# ===== Modal de cadastro (RF01) ===== #}
+<div class="modal-overlay{% if show_modal %} is-open{% endif %}" id="article-modal" data-modal>
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="article-modal-title">
+        <form method="post" action="{% url 'articles-index' %}" novalidate>
+            {% csrf_token %}
+            <div class="modal-header">
+                <h2 id="article-modal-title">Novo artigo</h2>
+                <button type="button" class="modal-close" data-close-modal aria-label="Fechar">&times;</button>
+            </div>
+
+            <div class="modal-body">
+                {% if form.non_field_errors %}
+                    <div class="field-errors">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <div class="modal-field">
+                    <label for="{{ form.doi.id_for_label }}">DOI</label>
+                    <div class="doi-lookup">
+                        {{ form.doi }}
+                        <button type="button" class="btn-secondary" id="doi-search-btn">Buscar</button>
+                    </div>
+                    <p class="doi-hint" id="doi-status">
+                        Informe o DOI para preencher os campos automaticamente (via Crossref).
+                    </p>
+                    {% if form.doi.errors %}<div class="field-errors">{{ form.doi.errors }}</div>{% endif %}
+                </div>
+
+                <div class="modal-field">
+                    <label for="{{ form.title.id_for_label }}">Título</label>
+                    {{ form.title }}
+                    {% if form.title.errors %}<div class="field-errors">{{ form.title.errors }}</div>{% endif %}
+                </div>
+
+                <div class="modal-field">
+                    <label for="{{ form.author.id_for_label }}">Autor</label>
+                    {{ form.author }}
+                    {% if form.author.errors %}<div class="field-errors">{{ form.author.errors }}</div>{% endif %}
+                </div>
+
+                <div class="modal-row">
+                    <div class="modal-field">
+                        <label for="{{ form.year.id_for_label }}">Ano</label>
+                        {{ form.year }}
+                        {% if form.year.errors %}<div class="field-errors">{{ form.year.errors }}</div>{% endif %}
+                    </div>
+                    <div class="modal-field">
+                        <label for="{{ form.quality.id_for_label }}">Qualidade</label>
+                        {{ form.quality }}
+                        {% if form.quality.errors %}<div class="field-errors">{{ form.quality.errors }}</div>{% endif %}
+                    </div>
+                </div>
+
+                <div class="modal-field">
+                    <label for="{{ form.link.id_for_label }}">Link</label>
+                    {{ form.link }}
+                    {% if form.link.errors %}<div class="field-errors">{{ form.link.errors }}</div>{% endif %}
+                </div>
+
+                <div class="modal-field">
+                    <label for="{{ form.tags.id_for_label }}">Tags</label>
+                    {{ form.tags }}
+                    {% if form.tags.errors %}<div class="field-errors">{{ form.tags.errors }}</div>{% endif %}
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-cancel" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn-primary">Salvar artigo</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // ===== Seleção em lote dos artigos (RF02) =====
+    (function () {
+        var selectAll = document.getElementById('select-all');
+        var bulkActions = document.getElementById('bulk-actions');
+        var bulkCount = document.getElementById('bulk-count');
+        var rows = Array.prototype.slice.call(document.querySelectorAll('.row-check'));
+        if (!rows.length) return;
+
+        function refresh() {
+            var checked = rows.filter(function (r) { return r.checked; });
+            bulkCount.textContent = checked.length;
+            bulkActions.hidden = checked.length === 0;
+            selectAll.checked = checked.length === rows.length;
+            selectAll.indeterminate = checked.length > 0 && checked.length < rows.length;
+        }
+
+        selectAll.addEventListener('change', function () {
+            rows.forEach(function (r) { r.checked = selectAll.checked; });
+            refresh();
+        });
+        rows.forEach(function (r) { r.addEventListener('change', refresh); });
+        refresh();
+    })();
+
+    // ===== Menu suspenso (⋮) de ações por card =====
+    (function () {
+        var menus = Array.prototype.slice.call(document.querySelectorAll('[data-menu]'));
+        if (!menus.length) return;
+
+        function closeAll(except) {
+            menus.forEach(function (m) {
+                if (m === except) return;
+                m.classList.remove('is-open');
+                m.querySelector('[data-menu-trigger]').setAttribute('aria-expanded', 'false');
+            });
+        }
+
+        menus.forEach(function (menu) {
+            var trigger = menu.querySelector('[data-menu-trigger]');
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var willOpen = !menu.classList.contains('is-open');
+                closeAll(menu);
+                menu.classList.toggle('is-open', willOpen);
+                trigger.setAttribute('aria-expanded', willOpen ? 'true' : 'false');
+            });
+        });
+
+        document.addEventListener('click', function () { closeAll(null); });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeAll(null);
+        });
+    })();
+
+    (function () {
+        var modal = document.getElementById('article-modal');
+        if (!modal) return;
+
+        function openModal() { modal.classList.add('is-open'); }
+        function closeModal() { modal.classList.remove('is-open'); }
+
+        document.querySelectorAll('[data-open-modal]').forEach(function (btn) {
+            btn.addEventListener('click', openModal);
+        });
+        document.querySelectorAll('[data-close-modal]').forEach(function (btn) {
+            btn.addEventListener('click', closeModal);
+        });
+        // Fecha ao clicar no fundo escuro (fora do .modal).
+        modal.addEventListener('click', function (e) {
+            if (e.target === modal) closeModal();
+        });
+        // Fecha com a tecla Esc.
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') closeModal();
+        });
+
+        // ===== Preenchimento automático via Crossref (DOI) =====
+        var doiInput = document.getElementById('{{ form.doi.id_for_label }}');
+        var doiBtn = document.getElementById('doi-search-btn');
+        var status = document.getElementById('doi-status');
+        var lookupUrl = '{% url 'lookup-doi' %}';
+
+        function setStatus(msg, state) {
+            status.textContent = msg;
+            status.className = 'doi-hint' + (state ? ' is-' + state : '');
+        }
+        function setField(id, value) {
+            var el = document.getElementById(id);
+            if (el && value) el.value = value;
+        }
+
+        function lookupDoi() {
+            var doi = (doiInput.value || '').trim();
+            if (!doi) { setStatus('Digite um DOI primeiro.', 'error'); return; }
+
+            doiBtn.disabled = true;
+            setStatus('Buscando na Crossref...', null);
+
+            fetch(lookupUrl + '?doi=' + encodeURIComponent(doi), {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(function (resp) {
+                    return resp.json().then(function (data) {
+                        return { ok: resp.ok, data: data };
+                    });
+                })
+                .then(function (res) {
+                    if (!res.ok) {
+                        setStatus(res.data.error || 'Não foi possível buscar o DOI.', 'error');
+                        return;
+                    }
+                    setField('{{ form.title.id_for_label }}', res.data.title);
+                    setField('{{ form.author.id_for_label }}', res.data.author);
+                    setField('{{ form.year.id_for_label }}', res.data.year);
+                    setField('{{ form.link.id_for_label }}', res.data.link);
+                    setStatus('Dados preenchidos a partir da Crossref. Revise antes de salvar.', 'ok');
+                })
+                .catch(function () {
+                    setStatus('Falha de rede ao consultar a Crossref.', 'error');
+                })
+                .finally(function () { doiBtn.disabled = false; });
+        }
+
+        if (doiBtn) doiBtn.addEventListener('click', lookupDoi);
+        // Permite buscar com Enter sem submeter o formulário.
+        if (doiInput) doiInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') { e.preventDefault(); lookupDoi(); }
+        });
+    })();
+</script>
+{% endblock %}

@@ -1,0 +1,40 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}ArticleHub{% endblock %}</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'main/css/app.css' %}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a href="{% url 'articles-index' %}" class="navbar-brand">ArticleHub</a>
+            <div class="navbar-links">
+                <a href="{% url 'articles-index' %}" class="{% block nav_articles %}{% endblock %}">Artigos</a>
+                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Ideias</a>
+            </div>
+            <div class="navbar-user">
+                <span>{{ request.user.username }}</span>
+                <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
+            </div>
+        </div>
+    </nav>
+
+    <main class="content">
+        {% if messages %}
+            <ul class="messages">
+                {% for message in messages %}
+                    <li class="{{ message.tags }}">{{ message }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

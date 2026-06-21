@@ -78,6 +78,10 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'articlehub.wsgi.application'
 
+# Redireciona para a tela de login quando @login_required barra o acesso.
+LOGIN_URL = 'login'
+LOGIN_REDIRECT_URL = 'articles-index'
+
 
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
