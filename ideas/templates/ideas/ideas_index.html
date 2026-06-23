@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 
-{% block title %}Banco de Ideias – ArticleHub{% endblock %}
+{% block title %}Insights – ArticleHub{% endblock %}
 {% block nav_ideas %}active{% endblock %}
 
 {% block content %}
@@ -110,8 +110,8 @@
 </style>
 
 <div class="page-header">
-    <h1>Banco de Ideias</h1>
-    <button type="button" class="btn-primary" data-open-modal>+ Nova ideia</button>
+    <h1>Insights</h1>
+    <button type="button" class="btn-primary" data-open-modal>+ Novo insight</button>
 </div>
 
 <form method="get" class="search-bar">
@@ -145,21 +145,21 @@
 {% endif %}
 
 <form method="post" action="{% url 'ideas-bulk-delete' %}" id="idea-form"
-      data-confirm="Excluir as ideias selecionadas? Esta ação não pode ser desfeita.">
+      data-confirm="Excluir os insights selecionados? Esta ação não pode ser desfeita.">
     {% csrf_token %}
 
     {% if ideas %}
         <div class="list-toolbar">
             <label class="select-all">
                 <input type="checkbox" id="select-all">
-                <span>Selecionar todas</span>
+                <span>Selecionar todos</span>
             </label>
             <div class="bulk-actions" id="bulk-actions" hidden>
-                <span class="bulk-count"><span id="bulk-count">0</span> selecionada(s)</span>
+                <span class="bulk-count"><span id="bulk-count">0</span> selecionado(s)</span>
                 <button type="submit" class="btn-danger"
-                        onclick="return confirm('Excluir as ideias selecionadas? Esta ação não pode ser desfeita.');">
+                        onclick="return confirm('Excluir os insights selecionados? Esta ação não pode ser desfeita.');">
                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                    Excluir selecionadas
+                    Excluir selecionados
                 </button>
             </div>
         </div>
@@ -179,7 +179,7 @@
                             🔗 {{ idea.article.title }}
                         </a>
                     {% else %}
-                        <span class="idea-article idea-article-none">Ideia solta</span>
+                        <span class="idea-article idea-article-none">Insight solto</span>
                     {% endif %}
                     {% if idea.tags.all %}
                         <div class="article-tags">
@@ -190,7 +190,7 @@
                     {% endif %}
                 </div>
                 <div class="article-menu" data-menu>
-                    <button type="button" class="menu-trigger" data-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Ações da ideia">
+                    <button type="button" class="menu-trigger" data-menu-trigger aria-haspopup="true" aria-expanded="false" aria-label="Ações do insight">
                         <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="5" r="1.8"></circle><circle cx="12" cy="12" r="1.8"></circle><circle cx="12" cy="19" r="1.8"></circle></svg>
                     </button>
                     <div class="menu-dropdown" role="menu">
@@ -210,10 +210,10 @@
         {% empty %}
             <div class="empty-state">
                 {% if query %}
-                    <p>Nenhuma ideia encontrada para “{{ query }}”.</p>
+                    <p>Nenhum insight encontrado para “{{ query }}”.</p>
                 {% else %}
-                    <p>Você ainda não registrou nenhuma ideia.</p>
-                    <button type="button" class="btn-primary" data-open-modal>Registrar a primeira</button>
+                    <p>Você ainda não registrou nenhum insight.</p>
+                    <button type="button" class="btn-primary" data-open-modal>Registrar o primeiro</button>
                 {% endif %}
             </div>
         {% endfor %}
@@ -243,7 +243,7 @@
         <form method="post" action="{% url 'ideas-index' %}" novalidate>
             {% csrf_token %}
             <div class="modal-header">
-                <h2 id="idea-modal-title">Nova ideia</h2>
+                <h2 id="idea-modal-title">Novo insight</h2>
                 <button type="button" class="modal-close" data-close-modal aria-label="Fechar">&times;</button>
             </div>
 
@@ -279,7 +279,7 @@
 
             <div class="modal-footer">
                 <button type="button" class="btn-cancel" data-close-modal>Cancelar</button>
-                <button type="submit" class="btn-primary">Salvar ideia</button>
+                <button type="submit" class="btn-primary">Salvar insight</button>
             </div>
         </form>
     </div>

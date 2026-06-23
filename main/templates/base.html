@@ -16,7 +16,7 @@
             <a href="{% url 'articles-index' %}" class="navbar-brand">ArticleHub</a>
             <div class="navbar-links">
                 <a href="{% url 'articles-index' %}" class="{% block nav_articles %}{% endblock %}">Artigos</a>
-                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Ideias</a>
+                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Insights</a>
             </div>
             <div class="navbar-user">
                 <span>{{ request.user.username }}</span>

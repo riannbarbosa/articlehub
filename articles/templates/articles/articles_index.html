@@ -101,6 +101,128 @@
     .btn-cancel:hover { background: #f7f8fa; }
     .modal-footer .btn-primary { width: auto; }
 
+    /* ===== Título clicável e selos do card ===== */
+    .article-title-btn {
+        display: inline-block; max-width: 100%;
+        background: none; border: none; padding: 0;
+        text-align: left; cursor: pointer; font-family: inherit;
+    }
+    .article-title-btn:hover { text-decoration: underline; }
+
+    .card-badges { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+    .annotation-badge, .insights-badge {
+        display: inline-flex; align-items: center; gap: 6px;
+        padding: 5px 12px; border-radius: 8px;
+        font-size: 12.5px; font-weight: 600; cursor: pointer;
+        border: 1px solid transparent;
+        transition: background 0.15s, border-color 0.15s, transform 0.1s;
+    }
+    .annotation-badge svg, .insights-badge svg { opacity: 0.85; flex-shrink: 0; }
+    .annotation-badge { background: #eef3fd; color: #1a73e8; border-color: #dbe7fb; }
+    .annotation-badge:hover { background: #e2ecfd; border-color: #c4d8f8; }
+    .insights-badge { background: #f3effd; color: #6b4ee6; border-color: #e3dafa; }
+    .insights-badge:hover { background: #ebe3fb; border-color: #d6c8f6; }
+    .annotation-badge:active, .insights-badge:active { transform: translateY(1px); }
+
+    /* ===== Painel lateral de detalhe do artigo (Fichamento + Insights) ===== */
+    .detail-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.45);
+        z-index: 1100;
+        opacity: 0;
+        visibility: hidden;
+        transition: opacity 0.2s ease;
+    }
+    .detail-overlay.is-open { opacity: 1; visibility: visible; }
+
+    .detail-panel {
+        position: absolute;
+        top: 0; right: 0;
+        height: 100%;
+        width: 100%;
+        max-width: 460px;
+        background: #fff;
+        box-shadow: -8px 0 30px rgba(0, 0, 0, 0.18);
+        display: flex;
+        flex-direction: column;
+        transform: translateX(100%);
+        transition: transform 0.22s ease-out;
+    }
+    .detail-overlay.is-open .detail-panel { transform: translateX(0); }
+
+    .detail-header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 20px 24px 16px;
+        border-bottom: 1px solid #eef0f4;
+    }
+    .detail-eyebrow {
+        font-size: 12px; font-weight: 600; letter-spacing: 0.04em;
+        text-transform: uppercase; color: #1a73e8; margin-bottom: 4px;
+    }
+    .detail-header h2 { font-size: 18px; font-weight: 600; color: #1a1a1a; line-height: 1.35; }
+
+    /* Abas (sub-abas) do painel */
+    .detail-tabs {
+        display: flex;
+        padding: 0 24px;
+        border-bottom: 1px solid #eef0f4;
+    }
+    .detail-tab {
+        background: none; border: none; cursor: pointer;
+        padding: 12px 0; margin-right: 22px; margin-bottom: -1px;
+        font-size: 14px; font-weight: 600; color: #98a2b3;
+        border-bottom: 2px solid transparent;
+        display: inline-flex; align-items: center; gap: 6px;
+    }
+    .detail-tab:hover { color: #475467; }
+    .detail-tab.is-active { color: #1a73e8; border-bottom-color: #1a73e8; }
+    .detail-tab-count {
+        min-width: 18px; padding: 0 5px;
+        font-size: 11px; line-height: 18px; text-align: center;
+        border-radius: 999px; background: #eef3fd; color: #1a73e8;
+    }
+
+    .detail-body { flex: 1; overflow-y: auto; display: flex; flex-direction: column; }
+    .detail-pane { display: none; padding: 22px 24px; }
+    .detail-pane.is-active { display: flex; flex-direction: column; flex: 1; }
+
+    .detail-fichamento {
+        flex: 1;
+        font-size: 14.5px; line-height: 1.75; color: #1f2733;
+        white-space: pre-wrap; word-break: break-word;
+    }
+    .detail-empty {
+        flex: 1; margin: 0; padding: 28px 18px; text-align: center;
+        color: #98a2b3; font-size: 14px;
+    }
+    #detail-fichamento-edit {
+        align-self: flex-start; margin-top: 22px;
+        padding: 9px 18px; border-radius: 8px; font-size: 13.5px; font-weight: 600;
+        background: #1a73e8; color: #fff; border: none; text-decoration: none;
+        transition: background 0.15s;
+    }
+    #detail-fichamento-edit:hover { background: #1765cc; }
+
+    .detail-insight {
+        padding: 14px 16px; margin-bottom: 12px;
+        background: #faf9ff; border: 1px solid #efeafc; border-radius: 10px;
+    }
+    .detail-insight:last-child { margin-bottom: 0; }
+    .detail-insight-title { font-size: 14.5px; font-weight: 600; color: #1a1a1a; margin-bottom: 5px; }
+    .detail-insight-content {
+        font-size: 13.5px; line-height: 1.6; color: #475467;
+        white-space: pre-wrap; word-break: break-word;
+    }
+    .detail-insight-edit {
+        display: inline-block; margin-top: 8px; font-size: 12.5px; font-weight: 600;
+        color: #6b4ee6; text-decoration: none;
+    }
+    .detail-insight-edit:hover { text-decoration: underline; }
+
 </style>
 
 <div class="page-header">
@@ -161,20 +283,49 @@
 
     <div class="article-list">
         {% for article in articles %}
-            <div class="article-card">
+            <div class="article-card"
+                 data-title="{{ article.title }}"
+                 data-fichamento-id="fichamento-{{ article.pk }}"
+                 data-insights-id="insights-{{ article.pk }}"
+                 data-edit-url="{% url 'articles-annotation' article.pk %}">
                 <label class="article-select">
                     <input type="checkbox" name="selected" value="{{ article.pk }}" class="row-check">
                 </label>
                 <div class="article-main">
-                    {# O link levará ao detalhe do artigo quando essa tela existir #}
-                    <h2 class="article-title">{{ article.title }}</h2>
+                    {# Clicar no título abre o painel de detalhe com as sub-abas Fichamento e Insights. #}
+                    <button type="button" class="article-title article-title-btn" data-open-detail data-default-tab="fichamento">{{ article.title }}</button>
                     <p class="article-meta">{{ article.author }} · {{ article.year }}</p>
-                    {% if article.annotation %}
-                        <a href="{% url 'articles-annotation' article.pk %}" class="annotation-badge">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                            Fichamento
-                        </a>
-                    {% endif %}
+
+                    {% with insights_count=article.ideas.all|length %}
+                    {% if article.annotation or insights_count %}
+                        <div class="card-badges">
+                            {% if article.annotation %}
+                                <button type="button" class="annotation-badge" data-open-detail data-default-tab="fichamento">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    Fichamento
+                                </button>
+                            {% endif %}
+                            {% if insights_count %}
+                                <button type="button" class="insights-badge" data-open-detail data-default-tab="insights">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"></path></svg>
+                                    {{ insights_count }} insight{{ insights_count|pluralize }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %} 
+
+                    <div hidden id="fichamento-{{ article.pk }}">{% if article.annotation %}{{ article.annotation.content }}{% endif %}</div>
+                    <div hidden id="insights-{{ article.pk }}">
+                        {% for idea in article.ideas.all %}
+                            <article class="detail-insight">
+                                <h3 class="detail-insight-title">{{ idea.title }}</h3>
+                                <p class="detail-insight-content">{{ idea.content }}</p>
+                                <a class="detail-insight-edit" href="{% url 'ideas-edit' idea.pk %}">Abrir insight ↗</a>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+
                     {% if article.tags.all %}
                         <div class="article-tags">
                             {% for tag in article.tags.all %}
@@ -318,6 +469,35 @@
     </div>
 </div>
 
+<div class="detail-overlay" id="detail-sidebar" data-detail-sidebar>
+    <aside class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <header class="detail-header">
+            <div>
+                <p class="detail-eyebrow">Artigo</p>
+                <h2 id="detail-title"></h2>
+            </div>
+            <button type="button" class="modal-close" data-close-detail aria-label="Fechar">&times;</button>
+        </header>
+        <div class="detail-tabs" role="tablist">
+            <button type="button" class="detail-tab" data-tab="fichamento" role="tab">Fichamento</button>
+            <button type="button" class="detail-tab" data-tab="insights" role="tab">
+                Insights <span class="detail-tab-count" id="detail-insights-count">0</span>
+            </button>
+        </div>
+        <div class="detail-body">
+            <section class="detail-pane" data-pane="fichamento">
+                <div class="detail-fichamento" id="detail-fichamento-text"></div>
+                <p class="detail-empty" id="detail-fichamento-empty" hidden>Nenhum fichamento registrado para este artigo.</p>
+                <a href="#" id="detail-fichamento-edit">Editar fichamento</a>
+            </section>
+            <section class="detail-pane" data-pane="insights">
+                <div id="detail-insights-list"></div>
+                <p class="detail-empty" id="detail-insights-empty" hidden>Nenhum insight vinculado a este artigo.</p>
+            </section>
+        </div>
+    </aside>
+</div>
+
 <script>
     // ===== Seleção em lote dos artigos (RF02) =====
     (function () {
@@ -444,6 +624,71 @@
         // Permite buscar com Enter sem submeter o formulário.
         if (doiInput) doiInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); lookupDoi(); }
+        });
+    })();
+
+    // ===== Painel lateral de detalhe do artigo (Fichamento + Insights) =====
+    (function () {
+        var sidebar = document.getElementById('detail-sidebar');
+        if (!sidebar) return;
+
+        var titleEl = document.getElementById('detail-title');
+        var fichText = document.getElementById('detail-fichamento-text');
+        var fichEmpty = document.getElementById('detail-fichamento-empty');
+        var fichEdit = document.getElementById('detail-fichamento-edit');
+        var insightsList = document.getElementById('detail-insights-list');
+        var insightsEmpty = document.getElementById('detail-insights-empty');
+        var insightsCount = document.getElementById('detail-insights-count');
+        var tabs = Array.prototype.slice.call(sidebar.querySelectorAll('.detail-tab'));
+        var panes = Array.prototype.slice.call(sidebar.querySelectorAll('.detail-pane'));
+
+        function activate(tab) {
+            tabs.forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-tab') === tab); });
+            panes.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-pane') === tab); });
+        }
+
+        function open(card, defaultTab) {
+            var fichSource = document.getElementById(card.getAttribute('data-fichamento-id'));
+            var insightsSource = document.getElementById(card.getAttribute('data-insights-id'));
+            var fichContent = fichSource ? fichSource.textContent.trim() : '';
+
+            titleEl.textContent = card.getAttribute('data-title') || '';
+
+            // Aba Fichamento
+            fichText.textContent = fichContent;
+            fichText.hidden = !fichContent;
+            fichEmpty.hidden = !!fichContent;
+            fichEdit.setAttribute('href', card.getAttribute('data-edit-url'));
+            fichEdit.textContent = fichContent ? 'Editar fichamento' : 'Adicionar fichamento';
+
+            // Aba Insights
+            insightsList.innerHTML = insightsSource ? insightsSource.innerHTML : '';
+            var count = insightsSource ? insightsSource.querySelectorAll('.detail-insight').length : 0;
+            insightsList.hidden = count === 0;
+            insightsEmpty.hidden = count !== 0;
+            insightsCount.textContent = count;
+
+            activate(defaultTab || 'fichamento');
+            sidebar.classList.add('is-open');
+        }
+        function close() { sidebar.classList.remove('is-open'); }
+
+        document.querySelectorAll('[data-open-detail]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                var card = trigger.closest('.article-card');
+                if (card) open(card, trigger.getAttribute('data-default-tab'));
+            });
+        });
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
+        });
+        sidebar.querySelector('[data-close-detail]').addEventListener('click', close);
+        // Clicar fora do painel (no overlay) fecha o sidebar.
+        sidebar.addEventListener('click', function (e) {
+            if (e.target === sidebar) close();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
         });
     })();
 </script>
