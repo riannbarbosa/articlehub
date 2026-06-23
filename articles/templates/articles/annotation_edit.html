@@ -1,71 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Fichamento – ArticleHub{% endblock %}
 {% block nav_articles %}active{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'main/css/annotation_edit.css' %}">{% endblock %}
 
 {% block content %}
-<style>
-    .edit-card {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
-        max-width: 760px;
-        margin: 0 auto;
-    }
-    .edit-card .modal-body { padding: 24px; }
-    .edit-card .modal-footer {
-        display: flex; align-items: center; gap: 10px;
-        padding: 18px 24px; border-top: 1px solid #eef0f4;
-    }
-    .modal-footer .footer-end { margin-left: auto; display: flex; gap: 10px; }
-
-    .annotation-article {
-        padding: 16px 24px;
-        border-bottom: 1px solid #eef0f4;
-        background: #fafbfc;
-        border-radius: 12px 12px 0 0;
-    }
-    .annotation-article h2 { font-size: 17px; font-weight: 600; color: #1a1a1a; }
-    .annotation-article p { font-size: 13px; color: #667085; margin-top: 4px; }
-
-    .modal-field { margin-bottom: 0; }
-    .modal-field label {
-        display: block; font-size: 13px; font-weight: 500;
-        color: #444; margin-bottom: 6px;
-    }
-    .modal-field textarea {
-        width: 100%;
-        padding: 12px 14px;
-        border: 1.5px solid #dde1e7;
-        border-radius: 8px;
-        font-size: 14px;
-        line-height: 1.6;
-        color: #1a1a1a;
-        background: #fafafa;
-        outline: none;
-        resize: vertical;
-        font-family: inherit;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .modal-field textarea:focus {
-        border-color: #1a73e8;
-        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
-        background: #fff;
-    }
-    .field-errors { color: #d93025; font-size: 12px; margin-top: 5px; }
-    .field-errors ul { list-style: none; margin: 0; padding: 0; }
-    .btn-cancel {
-        padding: 10px 18px; border-radius: 8px; cursor: pointer;
-        font-size: 14px; font-weight: 600; text-decoration: none;
-        background: #fff; color: #475467; border: 1.5px solid #dde1e7;
-    }
-    .btn-cancel:hover { background: #f7f8fa; }
-    .btn-link-danger {
-        background: none; border: none; cursor: pointer;
-        font-size: 14px; font-weight: 600; color: #d93025; padding: 10px 0;
-    }
-    .btn-link-danger:hover { text-decoration: underline; }
-</style>
 
 <div class="page-header">
     <h1>{% if has_annotation %}Editar fichamento{% else %}Novo fichamento{% endif %}</h1>

@@ -37,8 +37,13 @@ def index(request):
     query = request.GET.get('q', '').strip()
     selected_tags = tagfilters.get_selected_tags(request)
     # select_related('annotation') evita N+1 ao sinalizar quais artigos já
-    # possuem fichamento na listagem (RF02).
-    articles = Articles.objects.filter(user=request.user).select_related('annotation')
+    # possuem fichamento na listagem (RF02). prefetch_related('ideas') traz os
+    # insights vinculados para exibir na sub-aba do artigo (RF03).
+    articles = (
+        Articles.objects.filter(user=request.user)
+        .select_related('annotation')
+        .prefetch_related('ideas')
+    )
 
     if query:
         articles = articles.filter(
