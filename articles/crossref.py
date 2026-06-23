@@ -12,7 +12,7 @@ import urllib.request
 API_URL = 'https://api.crossref.org/works/'
 # A Crossref pede um User-Agent identificável (com e-mail de contato) para o
 # "polite pool", que oferece melhor confiabilidade.
-USER_AGENT = 'ArticleHub/1.0 (mailto:riannbarbosa5@gmail.com)'
+USER_AGENT = 'ScholarHub/1.0 (mailto:riannbarbosa5@gmail.com)'
 TIMEOUT = 8
 
 
