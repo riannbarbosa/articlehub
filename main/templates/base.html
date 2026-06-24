@@ -4,22 +4,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}ArticleHub{% endblock %}</title>
+    <title>{% block title %}ScholarHub{% endblock %}</title>
+    <link rel="icon" href="{% static 'main/favicon.svg' %}" type="image/svg+xml">
+    <script>
+        // Aplica o tema salvo antes do paint para evitar flash de tela clara.
+        (function () {
+            try {
+                var t = localStorage.getItem('theme');
+                if (t === 'dark') document.documentElement.setAttribute('data-theme', 'dark');
+            } catch (e) {}
+        })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
     <link rel="stylesheet" href="{% static 'main/css/app.css' %}">
+    {% block extra_css %}{% endblock %}
 </head>
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
-            <a href="{% url 'articles-index' %}" class="navbar-brand">ArticleHub</a>
+            <a href="{% url 'articles-index' %}" class="navbar-brand">ScholarHub</a>
             <div class="navbar-links">
                 <a href="{% url 'articles-index' %}" class="{% block nav_articles %}{% endblock %}">Artigos</a>
-                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Ideias</a>
+                <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Insights</a>
+                <a href="{% url 'graph' %}" class="{% block nav_graph %}{% endblock %}">Modo Grafo</a>
             </div>
             <div class="navbar-user">
-                <span>{{ request.user.username }}</span>
+                <span>{{ request.user.first_name|default:request.user.username }}</span>
+                <div class="settings-menu" id="settings-menu">
+                    <button type="button" class="settings-trigger" id="settings-trigger"
+                            aria-label="Configurações" aria-haspopup="true" aria-expanded="false">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"
+                             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="3"></circle>
+                            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                        </svg>
+                    </button>
+                    <div class="settings-dropdown" role="menu">
+                        <div class="settings-row">
+                            <span>Modo escuro</span>
+                            <button type="button" class="theme-switch" id="theme-switch"
+                                    role="switch" aria-checked="false" aria-label="Alternar modo escuro">
+                                <span class="theme-switch-knob"></span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
                 <a href="{% url 'logout' %}" class="btn-logout">Sair</a>
             </div>
         </div>
@@ -36,5 +67,45 @@
 
         {% block content %}{% endblock %}
     </main>
+
+    <script>
+        (function () {
+            var menu = document.getElementById('settings-menu');
+            var trigger = document.getElementById('settings-trigger');
+            var switchBtn = document.getElementById('theme-switch');
+            var root = document.documentElement;
+
+            function syncSwitch() {
+                var dark = root.getAttribute('data-theme') === 'dark';
+                switchBtn.setAttribute('aria-checked', dark ? 'true' : 'false');
+                switchBtn.classList.toggle('is-on', dark);
+            }
+            syncSwitch();
+
+            // Abre/fecha o menu de configurações.
+            trigger.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var open = menu.classList.toggle('is-open');
+                trigger.setAttribute('aria-expanded', open ? 'true' : 'false');
+            });
+            document.addEventListener('click', function (e) {
+                if (!menu.contains(e.target)) {
+                    menu.classList.remove('is-open');
+                    trigger.setAttribute('aria-expanded', 'false');
+                }
+            });
+
+            // Alterna o tema e persiste a escolha.
+            switchBtn.addEventListener('click', function () {
+                var dark = root.getAttribute('data-theme') !== 'dark';
+                if (dark) root.setAttribute('data-theme', 'dark');
+                else root.removeAttribute('data-theme');
+                try { localStorage.setItem('theme', dark ? 'dark' : 'light'); } catch (e) {}
+                syncSwitch();
+                // Permite que outras telas (ex.: o grafo) reajam ao tema.
+                window.dispatchEvent(new CustomEvent('themechange', { detail: { dark: dark } }));
+            });
+        })();
+    </script>
 </body>
 </html>

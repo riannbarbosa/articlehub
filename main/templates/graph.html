@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+{% block title %}Grafo – ScholarHub{% endblock %}
+{% block nav_graph %}active{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* O grafo ocupa toda a área abaixo da navbar. */
+    main.content { max-width: none; padding: 0; }
+    #graph-wrap {
+        position: relative;
+        height: calc(100vh - 60px);
+        background: #fafbfc;
+        overflow: hidden;
+    }
+    #graph { width: 100%; height: 100%; }
+    #graph:focus { outline: none; }
+    #graph-empty {
+        position: absolute;
+        inset: 0;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        gap: 8px;
+        color: #64748b;
+        text-align: center;
+        padding: 24px;
+    }
+    .graph-panel {
+        position: absolute;
+        top: 18px;
+        left: 18px;
+        background: transparent;
+        padding: 0;
+        font-size: 13px;
+        color: #475569;
+        user-select: none;
+    }
+    .graph-panel h2 {
+        font-size: 11px;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: #94a3b8;
+        margin-bottom: 10px;
+    }
+    .graph-legend label {
+        display: flex;
+        align-items: center;
+        gap: 9px;
+        padding: 4px 0;
+        cursor: pointer;
+        font-weight: 500;
+        transition: opacity 0.15s;
+    }
+    .graph-legend label:has(input:not(:checked)) { opacity: 0.4; }
+    .graph-legend input {
+        appearance: none;
+        -webkit-appearance: none;
+        margin: 0;
+        cursor: pointer;
+    }
+    .legend-dot {
+        width: 11px;
+        height: 11px;
+        border-radius: 50%;
+        flex-shrink: 0;
+        transition: transform 0.15s;
+    }
+    .graph-legend label:hover .legend-dot { transform: scale(1.2); }
+    .graph-hint {
+        position: absolute;
+        bottom: 18px;
+        left: 18px;
+        font-size: 12px;
+        color: #aeb6c2;
+    }
+
+    /* ===== Modo escuro ===== */
+    html[data-theme="dark"] #graph-wrap { background: #0d1424; }
+    html[data-theme="dark"] .graph-panel { color: #cbd5e1; }
+    html[data-theme="dark"] .graph-panel h2 { color: #64748b; }
+    html[data-theme="dark"] #graph-empty { color: #94a3b8; }
+    html[data-theme="dark"] .graph-hint { color: #5b6678; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div id="graph-wrap">
+    <div id="graph"></div>
+    <div id="graph-empty">
+        <strong>Seu grafo está vazio.</strong>
+        <span>Cadastre artigos, fichamentos e insights para ver as conexões aqui.</span>
+    </div>
+
+    <div class="graph-panel graph-legend">
+        <h2>Mostrar</h2>
+        <label><input type="checkbox" data-type="article" checked>
+            <span class="legend-dot" style="background:#4f46e5"></span> Artigos</label>
+        <label><input type="checkbox" data-type="annotation" checked>
+            <span class="legend-dot" style="background:#0ea5e9"></span> Fichamentos</label>
+        <label><input type="checkbox" data-type="idea" checked>
+            <span class="legend-dot" style="background:#8b5cf6"></span> Insights</label>
+        <label><input type="checkbox" data-type="tag" checked>
+            <span class="legend-dot" style="background:#64748b"></span> Tags</label>
+    </div>
+
+    <div class="graph-hint">Clique num nó para abrir · arraste os nós ou o fundo · scroll para zoom</div>
+</div>
+
+{{ graph|json_script:"graph-data" }}
+
+<script src="https://unpkg.com/vis-network@9.1.9/standalone/umd/vis-network.min.js"></script>
+<script>
+(function () {
+    var raw = JSON.parse(document.getElementById('graph-data').textContent);
+    var container = document.getElementById('graph');
+
+    if (!raw.nodes.length) {
+        document.getElementById('graph-empty').style.display = 'flex';
+        return;
+    }
+
+    function dark() { return document.documentElement.getAttribute('data-theme') === 'dark'; }
+
+    // Cores por tipo (paleta fria e harmônica).
+    var COLORS = {
+        article:    '#4f46e5',
+        annotation: '#0ea5e9',
+        idea:       '#8b5cf6',
+        tag:        '#64748b'
+    };
+
+    // Grau (nº de conexões) -> tamanho do nó.
+    var degree = {};
+    raw.links.forEach(function (l) {
+        degree[l.source] = (degree[l.source] || 0) + 1;
+        degree[l.target] = (degree[l.target] || 0) + 1;
+    });
+
+    function shorten(s) { return s.length > 40 ? s.slice(0, 39) + '…' : s; }
+
+    var nodes = new vis.DataSet(raw.nodes.map(function (n) {
+        return {
+            id: n.id,
+            label: shorten(n.label),
+            title: n.label,          // tooltip nativo
+            url: n.url,
+            group: n.type,
+            value: 1 + (degree[n.id] || 0)
+        };
+    }));
+    var edges = new vis.DataSet(raw.links.map(function (l, i) {
+        return { id: 'e' + i, from: l.source, to: l.target };
+    }));
+
+    function labelColor() { return dark() ? '#cbd5e1' : '#475569'; }
+    function edgeColor() { return dark() ? 'rgba(148,163,184,0.28)' : 'rgba(148,163,184,0.5)'; }
+    function edgeHighlight() { return dark() ? '#cbd5e1' : '#475569'; }
+
+    function groupStyle(color) {
+        return { color: { background: color, border: color, highlight: { background: color, border: color } } };
+    }
+
+    var options = {
+        nodes: {
+            shape: 'dot',
+            scaling: { min: 8, max: 24, label: false },
+            borderWidth: 0,
+            font: { color: labelColor(), size: 14, face: 'Inter', strokeWidth: 0 }
+        },
+        edges: {
+            color: { color: edgeColor(), highlight: edgeHighlight(), hover: edgeHighlight() },
+            width: 1,
+            selectionWidth: 1.5,
+            smooth: false           // arestas retas
+        },
+        groups: {
+            article:    groupStyle(COLORS.article),
+            annotation: groupStyle(COLORS.annotation),
+            idea:       groupStyle(COLORS.idea),
+            tag:        groupStyle(COLORS.tag)
+        },
+        // Motor de física contínuo: arrastar um nó faz os vizinhos seguirem com
+        // animação elástica; gravidade central segura nós isolados no lugar.
+        physics: {
+            solver: 'forceAtlas2Based',
+            forceAtlas2Based: {
+                gravitationalConstant: -55,
+                centralGravity: 0.015,
+                springLength: 90,
+                springConstant: 0.08,
+                damping: 0.5,
+                avoidOverlap: 0.3
+            },
+            stabilization: { iterations: 150, fit: false },
+            minVelocity: 0.6
+        },
+        interaction: {
+            hover: true,
+            dragNodes: true,
+            dragView: true,
+            zoomView: true,
+            navigationButtons: false,
+            keyboard: false
+        }
+    };
+
+    var network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
+
+    // Clique num nó -> abre a página filtrada. (Arrastar dispara dragEnd, não
+    // click, então não navega ao mover.)
+    network.on('click', function (params) {
+        if (params.nodes.length) {
+            var n = nodes.get(params.nodes[0]);
+            if (n && n.url) window.location.href = n.url;
+        }
+    });
+    network.on('hoverNode', function () { container.style.cursor = 'pointer'; });
+    network.on('blurNode', function () { container.style.cursor = 'default'; });
+
+    // Enquadra rápido ao terminar de estabilizar e afasta um pouco o zoom.
+    network.once('stabilizationIterationsDone', function () {
+        network.fit({ animation: { duration: 250, easingFunction: 'easeOutQuad' } });
+        setTimeout(function () {
+            network.moveTo({ scale: network.getScale() * 0.82, animation: { duration: 200 } });
+        }, 280);
+    });
+
+    // Reage ao modo escuro: atualiza fonte dos rótulos e cor das arestas.
+    function applyTheme() {
+        network.setOptions({
+            nodes: { font: { color: labelColor() } },
+            edges: { color: { color: edgeColor(), highlight: edgeHighlight(), hover: edgeHighlight() } }
+        });
+    }
+    window.addEventListener('themechange', applyTheme);
+
+    // Legenda: liga/desliga tipos de nó (as arestas conectadas somem junto).
+    document.querySelectorAll('.graph-legend input').forEach(function (cb) {
+        cb.addEventListener('change', function () {
+            var updates = raw.nodes
+                .filter(function (n) { return n.type === cb.dataset.type; })
+                .map(function (n) { return { id: n.id, hidden: !cb.checked }; });
+            nodes.update(updates);
+        });
+    });
+})();
+</script>
+{% endblock %}

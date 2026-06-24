@@ -1,107 +1,11 @@
 {% extends 'base.html' %}
+{% load static %}
 
-{% block title %}Artigos – ArticleHub{% endblock %}
+{% block title %}Artigos – ScholarHub{% endblock %}
 {% block nav_articles %}active{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'main/css/articles_index.css' %}">{% endblock %}
 
 {% block content %}
-<style>
-    /* ===== Modal de cadastro de artigo (RF01) ===== */
-    .modal-overlay {
-        display: none;
-        position: fixed;
-        inset: 0;
-        background: rgba(15, 23, 42, 0.55);
-        z-index: 1000;
-        padding: 24px;
-        overflow-y: auto;
-    }
-    .modal-overlay.is-open { display: flex; align-items: flex-start; justify-content: center; }
-
-    .modal {
-        background: #fff;
-        border-radius: 12px;
-        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.25);
-        width: 100%;
-        max-width: 520px;
-        margin: auto;
-        animation: modal-in 0.18s ease-out;
-    }
-    @keyframes modal-in {
-        from { opacity: 0; transform: translateY(-12px); }
-        to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .modal-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        padding: 20px 24px;
-        border-bottom: 1px solid #eef0f4;
-    }
-    .modal-header h2 { font-size: 19px; font-weight: 600; color: #1a1a1a; }
-    .modal-close {
-        background: none; border: none; cursor: pointer;
-        font-size: 26px; line-height: 1; color: #98a2b3;
-    }
-    .modal-close:hover { color: #475467; }
-
-    .modal-body { padding: 22px 24px; }
-
-    .modal-field { margin-bottom: 16px; }
-    .modal-field label {
-        display: block; font-size: 13px; font-weight: 500;
-        color: #444; margin-bottom: 6px;
-    }
-    .modal-field input,
-    .modal-field select {
-        width: 100%;
-        padding: 10px 14px;
-        border: 1.5px solid #dde1e7;
-        border-radius: 8px;
-        font-size: 14px;
-        color: #1a1a1a;
-        background: #fafafa;
-        outline: none;
-        transition: border-color 0.2s, box-shadow 0.2s;
-    }
-    .modal-field input:focus,
-    .modal-field select:focus {
-        border-color: #1a73e8;
-        box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.12);
-        background: #fff;
-    }
-    .modal-row { display: flex; gap: 14px; }
-    .modal-row .modal-field { flex: 1; }
-    .field-errors { color: #d93025; font-size: 12px; margin-top: 5px; }
-    .field-errors ul { list-style: none; margin: 0; padding: 0; }
-
-    /* ===== Busca por DOI (Crossref) ===== */
-    .doi-lookup { display: flex; gap: 10px; }
-    .doi-lookup input { flex: 1; }
-    .doi-lookup .btn-secondary {
-        white-space: nowrap; padding: 10px 16px; border-radius: 8px;
-        font-size: 14px; font-weight: 600; cursor: pointer;
-        background: #eef3fd; color: #1a73e8; border: 1.5px solid #cfe0fb;
-    }
-    .doi-lookup .btn-secondary:hover { background: #e2ecfd; }
-    .doi-lookup .btn-secondary:disabled { opacity: 0.6; cursor: default; }
-    .doi-hint { font-size: 12px; color: #98a2b3; margin-top: 6px; }
-    .doi-hint.is-error { color: #d93025; }
-    .doi-hint.is-ok { color: #137333; }
-
-    .modal-footer {
-        display: flex; justify-content: flex-end; gap: 10px;
-        padding: 18px 24px; border-top: 1px solid #eef0f4;
-    }
-    .btn-cancel {
-        padding: 10px 18px; border-radius: 8px; cursor: pointer;
-        font-size: 14px; font-weight: 600;
-        background: #fff; color: #475467; border: 1.5px solid #dde1e7;
-    }
-    .btn-cancel:hover { background: #f7f8fa; }
-    .modal-footer .btn-primary { width: auto; }
-
-</style>
 
 <div class="page-header">
     <h1>Meus Artigos</h1>
@@ -161,20 +65,49 @@
 
     <div class="article-list">
         {% for article in articles %}
-            <div class="article-card">
+            <div class="article-card"
+                 data-title="{{ article.title }}"
+                 data-fichamento-id="fichamento-{{ article.pk }}"
+                 data-insights-id="insights-{{ article.pk }}"
+                 data-edit-url="{% url 'articles-annotation' article.pk %}">
                 <label class="article-select">
                     <input type="checkbox" name="selected" value="{{ article.pk }}" class="row-check">
                 </label>
                 <div class="article-main">
-                    {# O link levará ao detalhe do artigo quando essa tela existir #}
-                    <h2 class="article-title">{{ article.title }}</h2>
+                    {# Clicar no título abre o painel de detalhe com as sub-abas Fichamento e Insights. #}
+                    <button type="button" class="article-title article-title-btn" data-open-detail data-default-tab="fichamento">{{ article.title }}</button>
                     <p class="article-meta">{{ article.author }} · {{ article.year }}</p>
-                    {% if article.annotation %}
-                        <a href="{% url 'articles-annotation' article.pk %}" class="annotation-badge">
-                            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                            Fichamento
-                        </a>
-                    {% endif %}
+
+                    {% with insights_count=article.ideas.all|length %}
+                    {% if article.annotation or insights_count %}
+                        <div class="card-badges">
+                            {% if article.annotation %}
+                                <button type="button" class="annotation-badge" data-open-detail data-default-tab="fichamento">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                                    Fichamento
+                                </button>
+                            {% endif %}
+                            {% if insights_count %}
+                                <button type="button" class="insights-badge" data-open-detail data-default-tab="insights">
+                                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3z"></path></svg>
+                                    {{ insights_count }} insight{{ insights_count|pluralize }}
+                                </button>
+                            {% endif %}
+                        </div>
+                    {% endif %} 
+
+                    <div hidden id="fichamento-{{ article.pk }}">{% if article.annotation %}{{ article.annotation.content }}{% endif %}</div>
+                    <div hidden id="insights-{{ article.pk }}">
+                        {% for idea in article.ideas.all %}
+                            <article class="detail-insight">
+                                <h3 class="detail-insight-title">{{ idea.title }}</h3>
+                                <p class="detail-insight-content">{{ idea.content }}</p>
+                                <a class="detail-insight-edit" href="{% url 'ideas-edit' idea.pk %}">Abrir insight ↗</a>
+                            </article>
+                        {% endfor %}
+                    </div>
+                    {% endwith %}
+
                     {% if article.tags.all %}
                         <div class="article-tags">
                             {% for tag in article.tags.all %}
@@ -318,6 +251,35 @@
     </div>
 </div>
 
+<div class="detail-overlay" id="detail-sidebar" data-detail-sidebar>
+    <aside class="detail-panel" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+        <header class="detail-header">
+            <div>
+                <p class="detail-eyebrow">Artigo</p>
+                <h2 id="detail-title"></h2>
+            </div>
+            <button type="button" class="modal-close" data-close-detail aria-label="Fechar">&times;</button>
+        </header>
+        <div class="detail-tabs" role="tablist">
+            <button type="button" class="detail-tab" data-tab="fichamento" role="tab">Fichamento</button>
+            <button type="button" class="detail-tab" data-tab="insights" role="tab">
+                Insights <span class="detail-tab-count" id="detail-insights-count">0</span>
+            </button>
+        </div>
+        <div class="detail-body">
+            <section class="detail-pane" data-pane="fichamento">
+                <div class="detail-fichamento" id="detail-fichamento-text"></div>
+                <p class="detail-empty" id="detail-fichamento-empty" hidden>Nenhum fichamento registrado para este artigo.</p>
+                <a href="#" id="detail-fichamento-edit">Editar fichamento</a>
+            </section>
+            <section class="detail-pane" data-pane="insights">
+                <div id="detail-insights-list"></div>
+                <p class="detail-empty" id="detail-insights-empty" hidden>Nenhum insight vinculado a este artigo.</p>
+            </section>
+        </div>
+    </aside>
+</div>
+
 <script>
     // ===== Seleção em lote dos artigos (RF02) =====
     (function () {
@@ -432,7 +394,7 @@
                     setField('{{ form.author.id_for_label }}', res.data.author);
                     setField('{{ form.year.id_for_label }}', res.data.year);
                     setField('{{ form.link.id_for_label }}', res.data.link);
-                    setStatus('Dados preenchidos a partir da Crossref. Revise antes de salvar.', 'ok');
+                    setStatus('Dados preenchidos. Revise antes de salvar.', 'ok');
                 })
                 .catch(function () {
                     setStatus('Falha de rede ao consultar a Crossref.', 'error');
@@ -444,6 +406,71 @@
         // Permite buscar com Enter sem submeter o formulário.
         if (doiInput) doiInput.addEventListener('keydown', function (e) {
             if (e.key === 'Enter') { e.preventDefault(); lookupDoi(); }
+        });
+    })();
+
+    // ===== Painel lateral de detalhe do artigo (Fichamento + Insights) =====
+    (function () {
+        var sidebar = document.getElementById('detail-sidebar');
+        if (!sidebar) return;
+
+        var titleEl = document.getElementById('detail-title');
+        var fichText = document.getElementById('detail-fichamento-text');
+        var fichEmpty = document.getElementById('detail-fichamento-empty');
+        var fichEdit = document.getElementById('detail-fichamento-edit');
+        var insightsList = document.getElementById('detail-insights-list');
+        var insightsEmpty = document.getElementById('detail-insights-empty');
+        var insightsCount = document.getElementById('detail-insights-count');
+        var tabs = Array.prototype.slice.call(sidebar.querySelectorAll('.detail-tab'));
+        var panes = Array.prototype.slice.call(sidebar.querySelectorAll('.detail-pane'));
+
+        function activate(tab) {
+            tabs.forEach(function (t) { t.classList.toggle('is-active', t.getAttribute('data-tab') === tab); });
+            panes.forEach(function (p) { p.classList.toggle('is-active', p.getAttribute('data-pane') === tab); });
+        }
+
+        function open(card, defaultTab) {
+            var fichSource = document.getElementById(card.getAttribute('data-fichamento-id'));
+            var insightsSource = document.getElementById(card.getAttribute('data-insights-id'));
+            var fichContent = fichSource ? fichSource.textContent.trim() : '';
+
+            titleEl.textContent = card.getAttribute('data-title') || '';
+
+            // Aba Fichamento
+            fichText.textContent = fichContent;
+            fichText.hidden = !fichContent;
+            fichEmpty.hidden = !!fichContent;
+            fichEdit.setAttribute('href', card.getAttribute('data-edit-url'));
+            fichEdit.textContent = fichContent ? 'Editar fichamento' : 'Adicionar fichamento';
+
+            // Aba Insights
+            insightsList.innerHTML = insightsSource ? insightsSource.innerHTML : '';
+            var count = insightsSource ? insightsSource.querySelectorAll('.detail-insight').length : 0;
+            insightsList.hidden = count === 0;
+            insightsEmpty.hidden = count !== 0;
+            insightsCount.textContent = count;
+
+            activate(defaultTab || 'fichamento');
+            sidebar.classList.add('is-open');
+        }
+        function close() { sidebar.classList.remove('is-open'); }
+
+        document.querySelectorAll('[data-open-detail]').forEach(function (trigger) {
+            trigger.addEventListener('click', function () {
+                var card = trigger.closest('.article-card');
+                if (card) open(card, trigger.getAttribute('data-default-tab'));
+            });
+        });
+        tabs.forEach(function (t) {
+            t.addEventListener('click', function () { activate(t.getAttribute('data-tab')); });
+        });
+        sidebar.querySelector('[data-close-detail]').addEventListener('click', close);
+        // Clicar fora do painel (no overlay) fecha o sidebar.
+        sidebar.addEventListener('click', function (e) {
+            if (e.target === sidebar) close();
+        });
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') close();
         });
     })();
 </script>
