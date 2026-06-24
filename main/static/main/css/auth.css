@@ -224,3 +224,10 @@ h2.auth-title {
     color: #1a73e8;
     border: 1px solid #c5d8fb;
 }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    .auth-container { padding: 12px; }
+    .auth-card { padding: 28px 22px; }
+    .auth-logo h1 { font-size: 25px; }
+}

@@ -100,3 +100,10 @@
 }
 .idea-article:hover { text-decoration: underline; }
 .idea-article-none { color: #98a2b3; font-style: italic; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    .modal-overlay { padding: 12px; }
+    .modal-header, .modal-footer { padding-left: 18px; padding-right: 18px; }
+    .modal-body { padding: 18px; }
+}

@@ -58,3 +58,9 @@
     font-size: 14px; font-weight: 600; color: #d93025; padding: 10px 0;
 }
 .btn-link-danger:hover { text-decoration: underline; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    .edit-card .modal-body { padding: 18px; }
+    .edit-card .modal-footer { flex-wrap: wrap; padding: 16px 18px; }
+}

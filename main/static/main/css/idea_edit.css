@@ -52,3 +52,9 @@
     background: #fff; color: #475467; border: 1.5px solid #dde1e7;
 }
 .btn-cancel:hover { background: #f7f8fa; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    .edit-card .modal-body { padding: 18px; }
+    .edit-card .modal-footer { flex-wrap: wrap; padding: 16px 18px; }
+}

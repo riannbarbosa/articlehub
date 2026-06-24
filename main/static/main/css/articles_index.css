@@ -215,3 +215,16 @@
     color: #6b4ee6; text-decoration: none;
 }
 .detail-insight-edit:hover { text-decoration: underline; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    /* Menos respiro nas bordas para o modal aproveitar a largura da tela. */
+    .modal-overlay { padding: 12px; }
+    .modal-header, .modal-footer { padding-left: 18px; padding-right: 18px; }
+    .modal-body { padding: 18px; }
+    /* Ano e Qualidade empilham quando não cabem lado a lado. */
+    .modal-row { flex-wrap: wrap; }
+    .modal-row .modal-field { flex-basis: 140px; }
+
+    .detail-header, .detail-tabs, .detail-pane { padding-left: 18px; padding-right: 18px; }
+}

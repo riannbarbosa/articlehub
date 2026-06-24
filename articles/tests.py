@@ -1,12 +1,3 @@
-"""Testes automatizados do app de Artigos.
-
-Cobrem os requisitos da proposta:
-- RF01: CRUD de artigos
-- RF02: editor de fichamento (Annotation)
-- RF04: busca global e filtro por tag
-- RN01: fichamento sempre vinculado a um artigo
-- RNF: isolamento de dados por usuário e exigência de login
-"""
 from unittest.mock import patch
 
 from django.contrib.auth.models import User

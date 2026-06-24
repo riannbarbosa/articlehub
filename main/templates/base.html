@@ -24,8 +24,22 @@
 <body>
     <nav class="navbar">
         <div class="navbar-inner">
+            <button type="button" class="nav-toggle" id="nav-toggle"
+                    aria-label="Abrir menu" aria-expanded="false" aria-controls="navbar-links">
+                <svg class="icon-open" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="3" y1="6" x2="21" y2="6"></line>
+                    <line x1="3" y1="12" x2="21" y2="12"></line>
+                    <line x1="3" y1="18" x2="21" y2="18"></line>
+                </svg>
+                <svg class="icon-close" width="22" height="22" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
             <a href="{% url 'articles-index' %}" class="navbar-brand">ScholarHub</a>
-            <div class="navbar-links">
+            <div class="navbar-links" id="navbar-links">
                 <a href="{% url 'articles-index' %}" class="{% block nav_articles %}{% endblock %}">Artigos</a>
                 <a href="{% url 'ideas-index' %}" class="{% block nav_ideas %}{% endblock %}">Insights</a>
                 <a href="{% url 'graph' %}" class="{% block nav_graph %}{% endblock %}">Modo Grafo</a>
@@ -104,6 +118,35 @@
                 syncSwitch();
                 // Permite que outras telas (ex.: o grafo) reajam ao tema.
                 window.dispatchEvent(new CustomEvent('themechange', { detail: { dark: dark } }));
+            });
+        })();
+
+        // Menu hambúrguer (mobile): abre/fecha a navegação Artigos/Insights/Grafo.
+        (function () {
+            var toggle = document.getElementById('nav-toggle');
+            var inner = document.querySelector('.navbar-inner');
+            if (!toggle || !inner) return;
+
+            function close() {
+                inner.classList.remove('nav-open');
+                toggle.classList.remove('is-open');
+                toggle.setAttribute('aria-expanded', 'false');
+                toggle.setAttribute('aria-label', 'Abrir menu');
+            }
+
+            toggle.addEventListener('click', function (e) {
+                e.stopPropagation();
+                var open = inner.classList.toggle('nav-open');
+                toggle.classList.toggle('is-open', open);
+                toggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+                toggle.setAttribute('aria-label', open ? 'Fechar menu' : 'Abrir menu');
+            });
+            // Fecha ao clicar fora da navbar ou ao apertar Escape.
+            document.addEventListener('click', function (e) {
+                if (!inner.contains(e.target)) close();
+            });
+            document.addEventListener('keydown', function (e) {
+                if (e.key === 'Escape') close();
             });
         })();
     </script>
