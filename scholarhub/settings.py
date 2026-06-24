@@ -83,19 +83,54 @@ LOGIN_URL = 'login'
 LOGIN_REDIRECT_URL = 'articles-index'
 
 
+# E-mail (envio do código OTP de confirmação de cadastro).
+# Defina EMAIL_HOST e credenciais para usar SMTP de verdade. Sem EMAIL_HOST,
+# cai no backend de console (imprime o e-mail no terminal) — útil para testar
+# sem servidor SMTP configurado.
+# Resend (https://resend.com): envio via API HTTP. Funciona no PythonAnywhere
+# free, pois usa HTTPS através do proxy — ao contrário do SMTP, que é bloqueado.
+# Se RESEND_API_KEY estiver definido, é usado no lugar do SMTP para o OTP.
+RESEND_API_KEY = os.environ.get('RESEND_API_KEY', '')
+
+EMAIL_HOST = os.environ.get('EMAIL_HOST', '')   
+if EMAIL_HOST:
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_PORT = int(os.environ.get('EMAIL_PORT', '587'))
+    EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS', 'True') == 'True'
+    EMAIL_USE_SSL = os.environ.get('EMAIL_USE_SSL', 'False') == 'True'
+    EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
+    EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
+else:
+    EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+    EMAIL_HOST_USER = ''
+DEFAULT_FROM_EMAIL = os.environ.get(
+    'DEFAULT_FROM_EMAIL', EMAIL_HOST_USER or 'no-reply@scholarhub.local'
+)
+
+
 # Database
 # https://docs.djangoproject.com/en/3.1/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('DB_NAME', 'scholarhub_db'),
-        'USER': os.environ.get('DB_USER', 'rian'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
+# SQLite por padrão (PythonAnywhere free / desenvolvimento simples).
+# Defina DB_ENGINE=postgres para usar PostgreSQL via variáveis DB_*.
+if os.environ.get('DB_ENGINE') == 'postgres':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': os.environ.get('DB_NAME', 'scholarhub_db'),
+            'USER': os.environ.get('DB_USER', 'rian'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation

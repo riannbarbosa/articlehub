@@ -30,7 +30,7 @@
                 <a href="{% url 'graph' %}" class="{% block nav_graph %}{% endblock %}">Modo Grafo</a>
             </div>
             <div class="navbar-user">
-                <span>{{ request.user.username }}</span>
+                <span>{{ request.user.first_name|default:request.user.username }}</span>
                 <div class="settings-menu" id="settings-menu">
                     <button type="button" class="settings-trigger" id="settings-trigger"
                             aria-label="Configurações" aria-haspopup="true" aria-expanded="false">

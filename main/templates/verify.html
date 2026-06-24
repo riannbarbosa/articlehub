@@ -1,0 +1,56 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Confirmar e-mail – ScholarHub</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="{% static 'main/css/auth.css' %}">
+</head>
+<body>
+    <div class="auth-container">
+        <div class="auth-card">
+            <div class="auth-logo">
+                <h1>ScholarHub</h1>
+                <p>Seu espaço para artigos e insights</p>
+            </div>
+
+            {% if messages %}
+                <ul class="messages">
+                    {% for message in messages %}
+                        <li class="{{ message.tags }}">{{ message }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <h2 class="auth-title">Confirme seu e-mail</h2>
+            <p class="field-hint" style="margin-bottom:18px;">
+                Enviamos um código de 6 dígitos para <strong>{{ email }}</strong>.
+                Digite-o abaixo para concluir o cadastro.
+            </p>
+
+            <form method="post">
+                {% csrf_token %}
+                <div class="form-group">
+                    <label for="code">Código de confirmação</label>
+                    <input type="text" id="code" name="code" class="otp-input"
+                           inputmode="numeric" pattern="[0-9]*" maxlength="6"
+                           placeholder="------" autocomplete="one-time-code" required autofocus>
+                </div>
+                <button type="submit" class="btn-primary">Confirmar</button>
+            </form>
+
+            <div class="auth-footer">
+                Não recebeu?
+                <form method="post" style="display:inline;">
+                    {% csrf_token %}
+                    <button type="submit" name="resend" value="1" class="btn-link">Reenviar código</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
