@@ -394,7 +394,7 @@
                     setField('{{ form.author.id_for_label }}', res.data.author);
                     setField('{{ form.year.id_for_label }}', res.data.year);
                     setField('{{ form.link.id_for_label }}', res.data.link);
-                    setStatus('Dados preenchidos a partir da Crossref. Revise antes de salvar.', 'ok');
+                    setStatus('Dados preenchidos. Revise antes de salvar.', 'ok');
                 })
                 .catch(function () {
                     setStatus('Falha de rede ao consultar a Crossref.', 'error');
