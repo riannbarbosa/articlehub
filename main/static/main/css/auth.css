@@ -225,6 +225,11 @@ h2.auth-title {
     border: 1px solid #c5d8fb;
 }
 
+/* ===== Utilitários ===== */
+.auth-footer--spaced { margin-top: 14px; }
+.field-hint--spaced { margin-bottom: 18px; }
+.inline-form { display: inline; }
+
 /* ===== Responsivo ===== */
 @media (max-width: 600px) {
     .auth-container { padding: 12px; }
