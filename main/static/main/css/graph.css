@@ -1,0 +1,94 @@
+/* O grafo ocupa toda a área abaixo da navbar. Usa flex para preencher o
+   espaço restante — funciona mesmo quando a navbar quebra em duas linhas
+   no mobile (não depende de uma altura fixa da navbar). */
+main.content { max-width: none; padding: 0; display: flex; flex-direction: column; }
+#graph-wrap {
+    position: relative;
+    flex: 1;
+    min-height: 0;
+    background: #fafbfc;
+    overflow: hidden;
+}
+#graph { width: 100%; height: 100%; }
+#graph:focus { outline: none; }
+#graph-empty {
+    position: absolute;
+    inset: 0;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    gap: 8px;
+    color: #64748b;
+    text-align: center;
+    padding: 24px;
+}
+.graph-panel {
+    position: absolute;
+    top: 18px;
+    left: 18px;
+    background: transparent;
+    padding: 0;
+    font-size: 13px;
+    color: #475569;
+    user-select: none;
+}
+.graph-panel h2 {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #94a3b8;
+    margin-bottom: 10px;
+}
+.graph-legend label {
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    padding: 4px 0;
+    cursor: pointer;
+    font-weight: 500;
+    transition: opacity 0.15s;
+}
+.graph-legend label:has(input:not(:checked)) { opacity: 0.4; }
+.graph-legend input {
+    appearance: none;
+    -webkit-appearance: none;
+    margin: 0;
+    cursor: pointer;
+}
+.legend-dot {
+    width: 11px;
+    height: 11px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: transform 0.15s;
+}
+.graph-legend label:hover .legend-dot { transform: scale(1.2); }
+.graph-hint {
+    position: absolute;
+    bottom: 18px;
+    left: 18px;
+    font-size: 12px;
+    color: #aeb6c2;
+}
+
+/* Cores dos marcadores da legenda, por tipo de nó. */
+.legend-dot--article    { background: #4f46e5; }
+.legend-dot--annotation { background: #0ea5e9; }
+.legend-dot--idea       { background: #8b5cf6; }
+.legend-dot--tag        { background: #64748b; }
+
+/* ===== Responsivo ===== */
+@media (max-width: 600px) {
+    .graph-panel { top: 12px; left: 12px; font-size: 12px; }
+    /* A dica de interação ocuparia muito espaço útil na tela pequena. */
+    .graph-hint { display: none; }
+}
+
+/* ===== Modo escuro ===== */
+html[data-theme="dark"] #graph-wrap { background: #0d1424; }
+html[data-theme="dark"] .graph-panel { color: #cbd5e1; }
+html[data-theme="dark"] .graph-panel h2 { color: #64748b; }
+html[data-theme="dark"] #graph-empty { color: #94a3b8; }
+html[data-theme="dark"] .graph-hint { color: #5b6678; }

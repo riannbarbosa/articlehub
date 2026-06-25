@@ -28,7 +28,7 @@
             {% endif %}
 
             <h2 class="auth-title">Confirme seu e-mail</h2>
-            <p class="field-hint" style="margin-bottom:18px;">
+            <p class="field-hint field-hint--spaced">
                 Enviamos um código de 6 dígitos para <strong>{{ email }}</strong>.
                 Digite-o abaixo para concluir o cadastro.
             </p>
@@ -46,7 +46,7 @@
 
             <div class="auth-footer">
                 Não recebeu?
-                <form method="post" style="display:inline;">
+                <form method="post" class="inline-form">
                     {% csrf_token %}
                     <button type="submit" name="resend" value="1" class="btn-link">Reenviar código</button>
                 </form>
