@@ -45,6 +45,9 @@ def graph_view(request):
     nodes = []
     links = []
     used_tags = {}
+    # Tags usadas por artigos: clicar nelas abre a lista de artigos; as demais
+    # (só de insights) abrem o Banco de Ideias, para não cair numa lista vazia.
+    article_tag_ids = set()
 
     for article in articles:
         nodes.append({
@@ -56,6 +59,7 @@ def graph_view(request):
         })
         for tag in article.tags.all():
             used_tags[str(tag.pk)] = tag.name
+            article_tag_ids.add(str(tag.pk))
             links.append({'source': f'a:{article.pk}', 'target': f't:{tag.pk}'})
 
     for annotation in annotations:
@@ -85,12 +89,14 @@ def graph_view(request):
             links.append({'source': node_id, 'target': f't:{tag.pk}'})
 
     for tag_id, name in used_tags.items():
+        # Tags de artigos vão para a lista de artigos; tags exclusivas de
+        # insights vão para o Banco de Ideias, ambas já filtradas pela tag.
+        list_url = 'articles-index' if tag_id in article_tag_ids else 'ideas-index'
         nodes.append({
             'id': f't:{tag_id}',
             'label': f'#{name}',
             'type': 'tag',
-            # Filtra os artigos por esta tag.
-            'url': _filtered('articles-index', tag=name),
+            'url': _filtered(list_url, tag=name),
         })
 
     graph = {'nodes': nodes, 'links': links}
