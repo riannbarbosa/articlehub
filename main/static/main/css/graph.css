@@ -9,7 +9,10 @@ main.content { max-width: none; padding: 0; display: flex; flex-direction: colum
     background: #fafbfc;
     overflow: hidden;
 }
-#graph { width: 100%; height: 100%; }
+/* Preenche o wrapper de forma robusta: height:100% num item flex nem sempre
+   resolve, e o vis-network acaba criando um canvas baixo (nós presos no topo).
+   Como #graph-wrap é position:relative, ancorar nas bordas garante a altura. */
+#graph { position: absolute; inset: 0; width: 100%; height: 100%; }
 #graph:focus { outline: none; }
 #graph-empty {
     position: absolute;

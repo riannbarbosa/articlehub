@@ -3,7 +3,10 @@
 
 {% block title %}Fichamento – ScholarHub{% endblock %}
 {% block nav_articles %}active{% endblock %}
-{% block extra_css %}<link rel="stylesheet" href="{% static 'main/css/annotation_edit.css' %}">{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://unpkg.com/easymde@2.18.0/dist/easymde.min.css">
+<link rel="stylesheet" href="{% static 'main/css/annotation_edit.css' %}">
+{% endblock %}
 
 {% block content %}
 
@@ -39,10 +42,40 @@
                 </button>
             {% endif %}
             <div class="footer-end">
+                {% if has_annotation %}
+                    <a href="{% url 'articles-annotation-pdf' article.pk %}" target="_blank"
+                       rel="noopener" class="btn-cancel">Exportar PDF</a>
+                {% endif %}
                 <a href="{% url 'articles-index' %}" class="btn-cancel">Cancelar</a>
                 <button type="submit" class="btn-primary">Salvar fichamento</button>
             </div>
         </div>
     </form>
 </div>
+
+<script src="https://unpkg.com/easymde@2.18.0/dist/easymde.min.js"></script>
+<script>
+(function () {
+    var textarea = document.getElementById('{{ form.content.id_for_label }}');
+    if (!textarea || typeof EasyMDE === 'undefined') return;
+
+    // Editor Markdown estilo Obsidian: barra de ferramentas, pré-visualização
+    // ao vivo e tela cheia. O EasyMDE mantém o <textarea> sincronizado, então
+    // o envio normal do formulário grava o Markdown.
+    new EasyMDE({
+        element: textarea,
+        spellChecker: false,
+        status: ['lines', 'words'],
+        autoDownloadFontAwesome: true,
+        placeholder: textarea.getAttribute('placeholder') || '',
+        toolbar: [
+            'bold', 'italic', 'heading', '|',
+            'quote', 'unordered-list', 'ordered-list', '|',
+            'link', 'image', 'code', 'table', '|',
+            'preview', 'side-by-side', 'fullscreen', '|',
+            'guide'
+        ]
+    });
+})();
+</script>
 {% endblock %}

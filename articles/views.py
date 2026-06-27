@@ -136,6 +136,21 @@ def annotation(request, pk):
 
 
 @login_required
+def annotation_pdf(request, pk):
+    """Versão para impressão/exportação em PDF do fichamento (RF02).
+
+    Renderiza o fichamento (em Markdown) numa página limpa que o navegador
+    converte em PDF via diálogo de impressão — sem dependências extras.
+    """
+    article = get_object_or_404(Articles, pk=pk, user=request.user)
+    annotation = get_object_or_404(Annotation, article=article, user=request.user)
+    return render(request, 'articles/annotation_pdf.html', {
+        'article': article,
+        'annotation': annotation,
+    })
+
+
+@login_required
 @require_POST
 def delete(request, pk):
     """Exclui um artigo do usuário (RF02)."""

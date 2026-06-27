@@ -103,8 +103,6 @@
             idea:       groupStyle(COLORS.idea),
             tag:        groupStyle(COLORS.tag)
         },
-        // Motor de física contínuo: arrastar um nó faz os vizinhos seguirem com
-        // animação elástica; gravidade central segura nós isolados no lugar.
         physics: {
             solver: 'forceAtlas2Based',
             forceAtlas2Based: {
@@ -130,8 +128,6 @@
 
     var network = new vis.Network(container, { nodes: nodes, edges: edges }, options);
 
-    // Clique num nó -> abre a página filtrada. (Arrastar dispara dragEnd, não
-    // click, então não navega ao mover.)
     network.on('click', function (params) {
         if (params.nodes.length) {
             var n = nodes.get(params.nodes[0]);
@@ -141,12 +137,19 @@
     network.on('hoverNode', function () { container.style.cursor = 'pointer'; });
     network.on('blurNode', function () { container.style.cursor = 'default'; });
 
-    // Enquadra rápido ao terminar de estabilizar e afasta um pouco o zoom.
+    // Enquadra ao terminar de estabilizar, limitando o zoom: grafos com poucos
+    // nós ficariam minúsculos perdidos numa área enorme (fit afasta demais),
+    // enquanto grafos grandes não devem ser ampliados além do legível.
     network.once('stabilizationIterationsDone', function () {
-        network.fit({ animation: { duration: 250, easingFunction: 'easeOutQuad' } });
-        setTimeout(function () {
-            network.moveTo({ scale: network.getScale() * 0.82, animation: { duration: 200 } });
-        }, 280);
+        network.fit();
+        var minScale = raw.nodes.length <= 12 ? 1 : 0.45;
+        var target = Math.max(minScale, Math.min(network.getScale(), 1.6));
+        network.moveTo({ scale: target, animation: { duration: 250, easingFunction: 'easeOutQuad' } });
+    });
+
+    // Reenquadra ao redimensionar a janela para o grafo não sair de vista.
+    window.addEventListener('resize', function () {
+        network.fit({ animation: { duration: 200 } });
     });
 
     // Reage ao modo escuro: atualiza fonte dos rótulos e cor das arestas.

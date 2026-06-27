@@ -663,8 +663,10 @@ input[type="checkbox"].row-check,
     .nav-toggle { display: inline-flex; }
     .navbar-brand { font-size: 18px; }
     .navbar-user { margin-left: auto; gap: 10px; }
-    /* Nome do usuário já é redundante no mobile; libera espaço. */
-    .navbar-user span { display: none; }
+    /* Nome do usuário já é redundante no mobile; libera espaço. Usa o
+       combinador filho direto para não esconder spans aninhados (ex.: o
+       rótulo "Modo escuro" dentro do dropdown de configurações). */
+    .navbar-user > span { display: none; }
 
     /* Painel suspenso da navegação (ancorado abaixo da navbar). */
     .navbar-links {

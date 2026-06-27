@@ -69,7 +69,8 @@
                  data-title="{{ article.title }}"
                  data-fichamento-id="fichamento-{{ article.pk }}"
                  data-insights-id="insights-{{ article.pk }}"
-                 data-edit-url="{% url 'articles-annotation' article.pk %}">
+                 data-edit-url="{% url 'articles-annotation' article.pk %}"
+                 data-pdf-url="{% url 'articles-annotation-pdf' article.pk %}">
                 <label class="article-select">
                     <input type="checkbox" name="selected" value="{{ article.pk }}" class="row-check">
                 </label>
@@ -268,9 +269,12 @@
         </div>
         <div class="detail-body">
             <section class="detail-pane" data-pane="fichamento">
-                <div class="detail-fichamento" id="detail-fichamento-text"></div>
+                <div class="detail-fichamento markdown-body" id="detail-fichamento-text"></div>
                 <p class="detail-empty" id="detail-fichamento-empty" hidden>Nenhum fichamento registrado para este artigo.</p>
-                <a href="#" id="detail-fichamento-edit">Editar fichamento</a>
+                <div class="detail-fichamento-actions">
+                    <a href="#" id="detail-fichamento-edit">Editar fichamento</a>
+                    <a href="#" id="detail-fichamento-pdf" target="_blank" rel="noopener" hidden>Exportar PDF</a>
+                </div>
             </section>
             <section class="detail-pane" data-pane="insights">
                 <div id="detail-insights-list"></div>
@@ -280,6 +284,7 @@
     </aside>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
 <script>
     // ===== Seleção em lote dos artigos (RF02) =====
     (function () {
@@ -418,6 +423,7 @@
         var fichText = document.getElementById('detail-fichamento-text');
         var fichEmpty = document.getElementById('detail-fichamento-empty');
         var fichEdit = document.getElementById('detail-fichamento-edit');
+        var fichPdf = document.getElementById('detail-fichamento-pdf');
         var insightsList = document.getElementById('detail-insights-list');
         var insightsEmpty = document.getElementById('detail-insights-empty');
         var insightsCount = document.getElementById('detail-insights-count');
@@ -436,12 +442,19 @@
 
             titleEl.textContent = card.getAttribute('data-title') || '';
 
-            // Aba Fichamento
-            fichText.textContent = fichContent;
+            // Aba Fichamento — renderiza o Markdown como HTML (com fallback
+            // para texto puro caso a biblioteca marked não tenha carregado).
+            if (fichContent && window.marked) {
+                fichText.innerHTML = marked.parse(fichContent);
+            } else {
+                fichText.textContent = fichContent;
+            }
             fichText.hidden = !fichContent;
             fichEmpty.hidden = !!fichContent;
             fichEdit.setAttribute('href', card.getAttribute('data-edit-url'));
             fichEdit.textContent = fichContent ? 'Editar fichamento' : 'Adicionar fichamento';
+            fichPdf.setAttribute('href', card.getAttribute('data-pdf-url'));
+            fichPdf.hidden = !fichContent;
 
             // Aba Insights
             insightsList.innerHTML = insightsSource ? insightsSource.innerHTML : '';
